@@ -17,12 +17,16 @@ public class TagDao {
         this.dsl = DSL.using(jooqConfig);
     }
 
+    public List<Integer> getAllReceiptsIDs(String tagName) {
+        return dsl.selectFrom(TAGS).where(TAGS.TAG.eq(tagName)).fetch(TAGS.ID);
+    }
+
     public void insert(String tagName, int id) {
         TagsRecord tagRecord = dsl
                 .selectFrom(TAGS)
                 .where(TAGS.ID.eq(id))
-                .and(TAGS.TAG.eq(tagName))
-                .fetchOne();
+                .fetchAny();
+
         if (tagRecord == null) {
             tagRecord = dsl
                     .insertInto(TAGS, TAGS.ID, TAGS.TAG)
@@ -36,7 +40,4 @@ public class TagDao {
         }
     }
 
-    public List<Integer> getAllReceiptsIDs(String tagName) {
-        return dsl.selectFrom(TAGS).where(TAGS.TAG.eq(tagName)).fetch(TAGS.ID);
-    }
 }

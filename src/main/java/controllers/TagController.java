@@ -24,11 +24,6 @@ public class TagController {
         this.receipts = receipts;
     }
 
-    @PUT
-    public void toggleTag(@PathParam("tag") String tagName, @NotNull int id) {
-        tags.insert(tagName, id);
-    }
-
     @GET
     public List<ReceiptResponse> getReceiptsForTag(@PathParam("tag") String tagName) {
         List<Integer> tagIDs = tags.getAllReceiptsIDs(tagName);
@@ -38,5 +33,11 @@ public class TagController {
                 .stream()
                 .filter(receiptsRecord -> tagIDs.contains(receiptsRecord.getId()))
                 .map(ReceiptResponse::new).collect(toList());
+    }
+
+
+    @PUT
+    public void toggleTag(@PathParam("tag") String tagName, @NotNull int id) {
+        tags.insert(tagName, id);
     }
 }
