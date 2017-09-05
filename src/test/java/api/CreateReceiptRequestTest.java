@@ -23,7 +23,7 @@ public class CreateReceiptRequestTest {
         receipt.amount = new BigDecimal(33.44);
         assertThat(validator.validate(receipt), empty());
     }
-
+    
     @Test
     public void testMissingAmount() {
         CreateReceiptRequest receipt = new CreateReceiptRequest();

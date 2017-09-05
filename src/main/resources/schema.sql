@@ -7,3 +7,11 @@ CREATE TABLE receipts (
 
   PRIMARY KEY (id)
 );
+
+CREATE TABLE tags (
+  tagID INT UNSIGNED AUTO_INCREMENT,
+  id INT UNSIGNED,
+  tag VARCHAR(255),
+
+  PRIMARY KEY (tagID)
+)

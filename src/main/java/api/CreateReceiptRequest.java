@@ -3,7 +3,6 @@ package api;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import java.math.BigDecimal;
-
 /**
  * This is an API Object.  It's job is to model and document the JSON API that we expose
  *
