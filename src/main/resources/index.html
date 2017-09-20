@@ -3,7 +3,7 @@
 <head>
     <script data-require="jquery@*" data-semver="3.1.1" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <style>
-        #container {
+        body {
             font-family: 'Comic sans MS';
         }
 
@@ -20,18 +20,6 @@
 
         #add-receipt:hover {
           box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-
-        #receiptList {
-            border: 1px solid green;
-            clear: both;
-            display: table-row-group;
-            text-align: left;
-            border-collapse: collapse;
-        }
-
-        .time, .merchant, .amount, .tags {
-            border: 1px solid #999999;
         }
 
         #add-receipt-popup {
@@ -75,23 +63,10 @@
         }
 
         .receipt {
-            background-color: #E6E7E8;
-            display: table-row;
+            background-color: white;
         }
 
-        .tableHeader {
-            display: table-row;
-            font-weight: bold;
-        }
 
-        .table {
-            display: table;
-            width: 100%;
-        }
-
-        .tableCell, .time, .merchant, .amount, .tags {
-            display: table-cell;
-        }
 
         .add-tag {
             width: 100px;
@@ -103,7 +78,7 @@
         }
 
         .tagValue {
-            background-color: #F4A71C;
+            background-color: grey;
             color: white;
             display: inline-block;
             text-align: center;
@@ -117,29 +92,30 @@
         $(function(){
             const api = ""; // <- do not need a root api URL if this page is served directly by the API
 
-            var toggleTag = function(receiptID, tag, success) {
+            var createTag = function(receiptName, tag) {
               $.ajax({
                   type: 'PUT',
-                  contentType: 'application/json',
                   dataType: 'json',
+                  contentType: 'application/json',
                   url: api+"/tags/" + tag,
-                  data: JSON.stringify(receiptID),
-                  success: success
+                  data: JSON.stringify(receiptName)
               });
             };
 
             $.getJSON(api+"/receipts", function(receipts){
                 for(var i=0; i < receipts.length; i++) {
                     var receipt = receipts[i];
-                    $(`<div class="receipt">
-                            <div class="time">${receipt.created}</div>
-                            <div class="merchant">${receipt.merchantName}</div>
-                            <div class="amount">${receipt.value}</div>
-                            <div class="tags" id=${receipt.id}><div class="add-tag">Add +</div></div>
-                        </div>`).appendTo($("#receiptList"));
-                    for (var j=0; j<receipt.tags.length; j++) {
-                        var tag = receipt.tags[j];
-                        $(`<div class='tag'><p class="tagValue">${tag}</p></div>`).appendTo($('#' + receipt.id));
+                    var receiptIndElement = $("#receiptList");
+                    receiptIndElement.append(`<div class="receipt">
+                            <span class="time">${receipt.created}</span>
+                            <span class="merchant">${receipt.merchantName}</span>
+                            <span class="amount">${receipt.value}</span>
+                            <span class="tags" id=${receipt.id}><span class="add-tag">Add +</span></span>
+                            </span>`);
+                    for (var j=0; j < receipt.tags.length; j++) {
+                        var receiptTag = receipt.tags[j];
+                        var receiptTagElement = $('#' + receipt.id);
+                        receiptTagElement.append(`<span class='tag'><p class="tagValue">${receiptTag}</p></span>`)
                     }
                 }
             });
@@ -151,17 +127,17 @@
                 var time = new Date();
                 $.ajax({
                     type: 'POST',
-                    contentType: 'application/json',
                     dataType: 'json',
+                    contentType: 'application/json',
                     url: api+"/receipts",
                     data: JSON.stringify(data),
                     success: function(response) {
-                      $(`<div class="receipt">
-                              <div class="time">${time}</div>
-                              <div class="merchant">${merchant}</div>
-                              <div class="amount">${amount}</div>
-                              <div class="tags" id=${response}><div class="add-tag">Add +</div></div>
-                          </div>`).appendTo($("#receiptList"));
+                        $("#receiptList").append(`<div class="receipt">
+                              <span class="time">${time}</span>
+                              <span class="merchant">${merchant}</span>
+                              <span class="amount">${amount}</span>
+                              <span class="tags" id=${response}><span class="add-tag">Add +</span></span>
+                              </div>`);
                         $('#add-receipt-popup').toggle();
                     }
                 });
@@ -177,11 +153,8 @@
             });
 
             $(document).on('click', '.add-tag', function() {
-                if ($('tag_input').length == 0) {
-                    $(`<input class='tag_input' type='text'>`).appendTo($(this).parent());
-                } else {
-                    $('tag_input').remove();
-                }
+                var receipt = $(this).parent();
+                receipt.append(`<input type='text' class='tag_input' placeholder='New tag'>`)
             });
 
             $(document).on('click', '.tag', function() {
@@ -191,8 +164,8 @@
             $(document).on('keypress', '.tag_input', function(e) {
                 if (e.which === 13) {
                     var id = $(this).parent().attr('id');
-                    var tag = $(this).val();
-                    $(`<div class='tag'><p class="tagValue">${tag}</p></div>`).appendTo($('#' + id));
+                    var tagVal = $(this).val();
+                    $(`<span class='tag'><p class="tagValue">${tagVal}</p></span>`).appendTo($('#' + id));
                     $(this).remove();
                 }
             })
@@ -201,30 +174,28 @@
 </head>
 
 <body>
-  <div id="container">
-    <div>
-      <h1 style = 'float:left'>My receipts</h1>
-      <div id="add-receipt">+</div>
-      <div id="add-receipt-popup" style='display:none'>
-        <form>
-          <input type="text" id="merchant" placeholder="Merchant"><br>
-          <input type="text" id="amount" placeholder="Amount"><br>
-        </form>
-        <div style="margin-top:20px">
-          <div id="cancel-receipt">Cancel</div>
-          <div id="save-receipt">Save</div>
-        </div>
+  <div>
+    <h2 style = 'float:left'>My receipts</h2>
+    <div id="add-receipt">+</div>
+    <div id="add-receipt-popup" style='display:none'>
+      <form>
+        <input type="text" id="merchant" placeholder="Merchant"><br>
+        <input type="text" id="amount" placeholder="Amount"><br>
+      </form>
+      <div style="margin-top:20px">
+        <div id="cancel-receipt">CANCEL</div>
+        <div id="save-receipt">SAVE</div>
       </div>
     </div>
-    <div class="table">
-      <div class="tableHeader">
-        <div class="tableCell">Time</div>
-        <div class="tableCell">Merchant</div>
-        <div class="tableCell">$</div>
-        <div class="tableCell">Tags</div>
-      </div>
-      <div id="receiptList">
-      </div>
+  </div>
+  <div style="width:100%; position:absolute; top: 100px">
+    <div>
+      <span>Time</span>
+      <span>Merchant</span>
+      <span>$</span>
+      <span>Tags</span>
+    </div>
+    <div id="receiptList">
     </div>
   </div>
 </body>
