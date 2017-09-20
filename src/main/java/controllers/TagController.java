@@ -38,6 +38,6 @@ public class TagController {
 
     @PUT
     public void toggleTag(@PathParam("tag") String tagName, @NotNull int id) {
-        tags.insert(tagName, id);
+          tags.insert(tagName, id);
     }
 }
