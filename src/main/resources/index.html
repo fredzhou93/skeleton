@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script data-require="jquery@*" data-semver="3.1.1" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <style>
+        body {
+            font-family: 'Comic sans MS';
+        }
+
+        #add-receipt {
+          background-color:#A6A8AB;
+          width: 60px;
+          margin-top: 25px;
+          float: right;
+          font-size: 2em;
+          color: white;
+          text-align: center;
+          cursor: pointer;
+        }
+
+        #add-receipt:hover {
+          box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        #add-receipt-popup {
+            background-color: white;
+            width: 200px;
+            height: 100px;
+            position: absolute;
+            top: 75px;
+            right: 7px;
+            border: 1px solid #E6E7E8;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            padding: 15px
+        }
+
+        #save-receipt {
+            background-color: #58595B;
+            color:white;
+            display：inline-block;
+            width: 60px;
+            text-align: center;
+            float: right;
+            cursor: pointer;
+        }
+
+        #cancel-receipt {
+            background-color: #58595B;
+            color: white;
+            margin-left: 15px;
+            text-align: center;
+            width: 60px;
+            float: right;
+            margin-right:18px;
+            cursor: pointer;
+        }
+
+        input[type=text] {
+          border-left: none;
+          border-right: none;
+          border-top: none;
+          border-bottom: 1px solid #58595B;
+        }
+
+        .receipt {
+            background-color: white;
+        }
+
+
+
+        .add-tag {
+            width: 100px;
+            background-color: #0067C5;
+            color: white;
+            display: inline-block;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .tagValue {
+            background-color: grey;
+            color: white;
+            display: inline-block;
+            text-align: center;
+            cursor: pointer;
+        }
+
+    </style>
+    <script>
+        // This is the idiomatic way to ensure that JQuery does not
+        // execute until the page has loaded
+        $(function(){
+            const api = ""; // <- do not need a root api URL if this page is served directly by the API
+
+            var createTag = function(receiptName, tag) {
+              $.ajax({
+                  type: 'PUT',
+                  dataType: 'json',
+                  contentType: 'application/json',
+                  url: api+"/tags/" + tag,
+                  data: JSON.stringify(receiptName)
+              });
+            };
+
+            $.getJSON(api+"/receipts", function(receipts){
+                for(var i=0; i < receipts.length; i++) {
+                    var receipt = receipts[i];
+                    var receiptIndElement = $("#receiptList");
+                    receiptIndElement.append(`<div class="receipt">
+                            <span class="time">${receipt.created}</span>
+                            <span class="merchant">${receipt.merchantName}</span>
+                            <span class="amount">${receipt.value}</span>
+                            <span class="tags" id=${receipt.id}><span class="add-tag">Add +</span></span>
+                            </span>`);
+                    for (var j=0; j < receipt.tags.length; j++) {
+                        var receiptTag = receipt.tags[j];
+                        var receiptTagElement = $('#' + receipt.id);
+                        receiptTagElement.append(`<span class='tag'><p class="tagValue">${receiptTag}</p></span>`)
+                    }
+                }
+            });
+
+            $(document).on('click', '#save-receipt', function() {
+                var merchant = $("#merchant").val();
+                var amount = $("#amount").val();
+                var data = {"merchant": merchant, "amount": amount};
+                var time = new Date();
+                $.ajax({
+                    type: 'POST',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    url: api+"/receipts",
+                    data: JSON.stringify(data),
+                    success: function(response) {
+                        $("#receiptList").append(`<div class="receipt">
+                              <span class="time">${time}</span>
+                              <span class="merchant">${merchant}</span>
+                              <span class="amount">${amount}</span>
+                              <span class="tags" id=${response}><span class="add-tag">Add +</span></span>
+                              </div>`);
+                        $('#add-receipt-popup').toggle();
+                    }
+                });
+            });
+
+            $(document).on('click', '#add-receipt', function() {
+                $('#add-receipt-popup').toggle();
+            });
+
+
+            $(document).on('click', '#cancel-receipt', function() {
+                $('#add-receipt-popup').toggle();
+            });
+
+            $(document).on('click', '.add-tag', function() {
+                var receipt = $(this).parent();
+                receipt.append(`<input type='text' class='tag_input' placeholder='New tag'>`)
+            });
+
+            $(document).on('click', '.tag', function() {
+                $(this).remove();
+            });
+
+            $(document).on('keypress', '.tag_input', function(e) {
+                if (e.which === 13) {
+                    var id = $(this).parent().attr('id');
+                    var tagVal = $(this).val();
+                    $(`<span class='tag'><p class="tagValue">${tagVal}</p></span>`).appendTo($('#' + id));
+                    $(this).remove();
+                }
+            })
+        })
+    </script>
+</head>
+
+<body>
+  <div>
+    <h2 style = 'float:left'>My receipts</h2>
+    <div id="add-receipt">+</div>
+    <div id="add-receipt-popup" style='display:none'>
+      <form>
+        <input type="text" id="merchant" placeholder="Merchant"><br>
+        <input type="text" id="amount" placeholder="Amount"><br>
+      </form>
+      <div style="margin-top:20px">
+        <div id="cancel-receipt">CANCEL</div>
+        <div id="save-receipt">SAVE</div>
+      </div>
+    </div>
+  </div>
+  <div style="width:100%; position:absolute; top: 100px">
+    <div>
+      <span>Time</span>
+      <span>Merchant</span>
+      <span>$</span>
+      <span>Tags</span>
+    </div>
+    <div id="receiptList">
+    </div>
+  </div>
+</body>
+
+</html>
